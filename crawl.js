@@ -1,12 +1,32 @@
-function normalizeURL(urlString) {
-    const urlObj = new URL(urlString);
-    const hostPath = `${urlObj.hostname}${urlObj.pathname}`
-    if (hostPath.length > 0 && hostPath.slice(-1) === '/') {
-        return hostPath.slice(0, -1)
+const { JSDOM } = require('jsdom');
+
+function getURLsFromHTML(htmlBody, baseURL) {
+    const urls = [];
+    const dom = new JSDOM(htmlBody);
+    const linkElements = dom.window.document.querySelectorAll('a');
+    for (const linkElement of linkElements) {
+        if (linkElement.href.slice(0, 1) === '/') {
+            // relative url
+            urls.push(`${baseURL}${linkElement.href}`)
+        } else {
+            // absolute url
+            urls.push(linkElement.href)
+        }
     }
-    return hostPath
+    return urls;
 }
 
+function normalizeURL(urlString) {
+    const urlObj = new URL(urlString);
+    const hostPath = `${urlObj.hostname}${urlObj.pathname}`;
+    if (hostPath.length > 0 && hostPath.slice(-1) === '/') {
+        return hostPath.slice(0, -1);
+    }
+    return hostPath;
+}
+
+
 module.exports = {
-    normalizeURL
+    normalizeURL,
+    getURLsFromHTML
 }
