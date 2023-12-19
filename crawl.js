@@ -20,25 +20,26 @@ async function crawlPage(baseURL, currentURL, pages){
         const resp = await fetch(currentURL);
         if (resp.status > 399) {
             console.log(`error in fetch with status code: ${resp.status} on page: ${currentURL}`);
-            return;
+            return pages;
         }
         
         const contentType = resp.headers.get("content-type");
         if (!contentType.includes("text/html")) {
             console.log(`non html response, content type: ${contentType}, on page: ${currentURL}`);
-            return;
+            return pages;
 
         }
 
         const htmlBody = await resp.text();
         const nextURLs = getURLsFromHTML(htmlBody, baseURL);
 
-        for (nextURL of nextURLs) {
-            
+        for (const nextURL of nextURLs) {
+            pages = await crawlPage(baseURL, nextURL, pages);
         }
     } catch (err) {
         console.log(`error in fetch: ${err.message}, on page: ${currentURL}`);
     }
+    return pages;
 }
 
 function getURLsFromHTML(htmlBody, baseURL) {
